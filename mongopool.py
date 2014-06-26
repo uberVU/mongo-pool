@@ -70,6 +70,8 @@ class MongoPool(object):
 
             self._clusters.append(cluster_config)
 
+            self._mapped_databases = []
+
     def set_timeout(self, network_timeout):
         # Do nothing if attempting to set the same timeout twice.
         if network_timeout == self._network_timeout:
@@ -83,8 +85,12 @@ class MongoPool(object):
         """ Disconnect from all MongoDB connections. """
         for cluster in self._clusters:
             if 'connection' in cluster:
-                c = cluster['connection']
-                c.disconnect()
+                c = cluster.pop('connection')
+                c.close()
+
+        for dbname in self._mapped_databases:
+            self.__delattr__(dbname)
+        self._mapped_databases = []
 
     def _get_connection(self, cluster):
         """ Creates & returns a connection for a cluster - lazy. """
@@ -124,6 +130,7 @@ class MongoPool(object):
         # future references to the same name to NOT invoke self.__getattr__,
         # and be resolved directly at object level.
         setattr(self, name, database)
+        self._mapped_databases.append(name)
         return database
 
     def __getitem__(self, key):

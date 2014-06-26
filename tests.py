@@ -64,16 +64,31 @@ class MongoPoolTestCase(TestCase):
         mock_MongoClient.assert_called_with(**self.call_arguments)
 
     @patch('mongopool.pymongo.MongoClient')
-    def test_set_timeout_disconnects_all_connections(self, mock_MongoClient):
+    def test_uses_set_timeout(self, mock_MongoClient):
+        new_timeout = 5
+        self.pool.set_timeout(new_timeout)
+        
         db1 = self.pool.db1
-        db2 = self.pool.dbp
-        self.pool.set_timeout(2)
-        db1 = self.pool.db1
-        calls = [call(), call()]
-        calls = [call(**self.call_arguments)]
-        self.call_arguments['port'] = 27018
-        calls.append(call(**self.call_arguments))
-        calls.append(call().disconnect())
-        calls.append(call().disconnect())
+        self.call_arguments['socketTimeoutMS'] = new_timeout
+        
+        mock_MongoClient.assert_called_with(**self.call_arguments)
 
-        mock_MongoClient.assert_has_calls(calls, any_order=True)
+    @patch('mongopool.pymongo.MongoReplicaSetClient')
+    @patch('mongopool.pymongo.MongoClient')
+    def test_recreates_clients_after_set_timeout(self, mock_MongoClient, mock_MongoReplicaSetClient):
+        new_timeout = 5
+        db1 = self.pool.db1
+        db2 = self.pool.db2
+        mock_MongoClient.reset_mock()
+        mock_MongoReplicaSetClient.reset_mock()
+        self.pool.set_timeout(new_timeout)
+
+        db1 = self.pool.db1
+        self.call_arguments['socketTimeoutMS'] = new_timeout
+        mock_MongoClient.assert_called_with(**self.call_arguments)
+
+        call_arguments = {'hosts_or_uri': '127.0.0.1:27017', 'safe': True, 
+                       'read_preference': 0, 'socketTimeoutMS': new_timeout,
+                       'replicaSet': 'rset0'}
+        db2 = self.pool.db2
+        mock_MongoReplicaSetClient.assert_called_with(**call_arguments)
