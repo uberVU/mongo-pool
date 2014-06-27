@@ -24,16 +24,16 @@ class MongoPool(object):
         self._mapped_databases = []
 
     def _parse_configs(self, config):
-        """Builds a dictionary with information to connect to Clusters.
+        """Builds a dict with information to connect to Clusters.
 
         Parses the list of configuration dictionaries passed by the user and
-        builds an internal dictionary (_clusters) that holds information for
-        creating Clients connecting to Clusters and matching database names.
+        builds an internal dict (_clusters) that holds information for creating
+        Clients connecting to Clusters and matching database names.
 
         Args:
             config: A list of dictionaries containing connecting and
                 identification information about Clusters.
-                A dictionary has the following structure:
+                A dict has the following structure:
                 {label: {host, port, read_preference, replicaSet, dbpath}}.
 
         Raises:
@@ -122,8 +122,7 @@ class MongoPool(object):
             cluster_config: Dictinary containing parameters for a MongoClient.
 
         Returns:
-            A dictionary containing parameters for creating a
-            MongoReplicaSetClient.
+            A dict containing parameters for creating a MongoReplicaSetClient.
         """
 
         host = cluster_config['params'].pop('host')
@@ -137,30 +136,49 @@ class MongoPool(object):
         return cluster_config
 
     def set_timeout(self, network_timeout):
-        """ Sets the timeout for existing and future Clients. """
+        """Set the timeout for existing and future Clients.
+
+        Close all current connections. This will cause future operations to
+        create new Clients with the network_timeout passed through
+        socketTimeoutMS optional parameter.
+
+        Args:
+            network_timeout: The new value in milliseconds for the timeout.
+        """
         # Do nothing if attempting to set the same timeout twice.
         if network_timeout == self._network_timeout:
             return
         self._network_timeout = network_timeout
-        # Close all current connections. This will cause future operations
-        # to create new connections with the new timeout.
-        self.disconnect()
+        self._disconnect()
 
-    def disconnect(self):
-        """ Disconnect from all MongoDB Clients. """
+    def _disconnect(self):
+        """Disconnect from all MongoDB Clients."""
         for cluster in self._clusters:
             if 'connection' in cluster:
                 c = cluster.pop('connection')
                 c.close()
-
+        # Remove all attributes that are database names so that next time
+        # when they are accessed, __getattr__ will be called and will create
+        # new Clients
         for dbname in self._mapped_databases:
             self.__delattr__(dbname)
         self._mapped_databases = []
 
     def _get_connection(self, cluster):
-        """ Creates & returns a connection for a cluster - lazy. """
+        """Return a connection to a Cluster.
+
+        Return a MongoClient or a MongoReplicaSetClient for the given Cluster.
+        This is done in a lazy manner (if there is already a Client connected to
+        the Cluster, it is returned and no other Client is created).
+
+        Args:
+            cluster: A dict containing information about a cluster.
+
+        Returns:
+            A MongoClient or MongoReplicaSetClient instance connected to the
+            desired cluster
+        """
         if 'connection' not in cluster:
-            # Try to use replica set connection starting with pymongo 2.1
             if 'replicaSet' in cluster['params']:
                 cluster['connection'] = pymongo.MongoReplicaSetClient(
                     socketTimeoutMS=self._network_timeout,
@@ -175,6 +193,15 @@ class MongoPool(object):
         return cluster['connection']
 
     def _match_dbname(self, dbname):
+        """Map a database name to the Cluster that holds the database.
+
+        Args:
+            dbname: A database name.
+
+        Returns:
+            A dict containing the information about the Cluster that holds the
+            database.
+        """
         for config in self._clusters:
             if re.match(config['pattern'], dbname):
                 return config
@@ -182,11 +209,7 @@ class MongoPool(object):
             raise Exception('No such database %s.' % dbname)
 
     def __getattr__(self, name):
-        """
-          Return a pymongo.Database object that contains the "name" database.
-        """
-        # Get or init a pymongo.MongoClient that matches the supplied name.
-        # Instantiates one if necessary.
+        """Map a database name to the coresponding pymongo.Database instance"""
         config = self._match_dbname(name)
         connection = self._get_connection(config)
         db_name = name
