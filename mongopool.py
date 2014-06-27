@@ -14,30 +14,43 @@ class MongoPool(object):
 
     def __init__(self, config=None, network_timeout=None):
 
-        if config is None:
-            raise Exception('No configurations provided')
 
         # Set timeout.
         self._network_timeout = network_timeout
 
         # { label -> cluster config } dict
         self._clusters = []
+        self._parse_configs(config)
+        self._mapped_databases = []
+
+    def _parse_configs(self, config):
+        """Builds a dictionary with information to connect to Clusters.
+
+        Parses the list of configuration dictionaries passed by the user and
+        builds an internal dictionary (_clusters) that holds information for
+        creating Clients connecting to Clusters and matching database names.
+
+        Args:
+            config: A list of dictionaries containing connecting and
+                identification information about Clusters.
+                A dictionary has the following structure:
+                {label: {host, port, read_preference, replicaSet, dbpath}}.
+
+        Raises:
+            Exception('No configurations provided'): no configuration provided.
+        """
+        if config is None:
+            raise Exception('No configurations provided')
+
         for config_dict in config:
             label = config_dict.keys()[0]
             cfg = config_dict[label]
             # Transform dbpath to something digestable by regexp.
-            pattern = cfg['dbpath']
-            if isinstance(pattern, list):
-                # Support dbpath param as an array.
-                pattern = '|'.join(pattern)
-            # Append $ (end of string) so that twit will not match twitter!
-            if not pattern.endswith('$'):
-                pattern = '(%s)$' % pattern
+            dbpath = cfg['dbpath']
+            pattern = self._parse_dbpath(dbpath)
 
-            preference = cfg.get('read_preference', 'primary').upper()
-            read_preference = getattr(pymongo.ReadPreference, preference, None)
-            if read_preference is None:
-                raise ValueError('Invalid read preference: %s' % read_preference)
+            read_preference = cfg.get('read_preference', 'primary').upper()
+            read_preference = self._get_read_preference(read_preference)
 
             # Put all parameters that could be passed to pymongo.MongoClient
             # in a separate dict, to ease MongoClient creation.
@@ -52,25 +65,76 @@ class MongoPool(object):
             }
 
             replica_set = cfg.get('replica_set')
-            # Leave this code here, some of it will be removed for newer
-            # versions of pymongo
             if replica_set:
                 cluster_config['params']['replicaSet'] = replica_set
-                # ReplicaSetConnection has a slightly different API;
-                # need to change host field into hosts_or_uri and move port
-                # into the hosts_or_uri field
-                host = cluster_config['params'].pop('host')
-                port = cluster_config['params'].pop('port')
-
-                if not isinstance(host, list):
-                    host = [host]
-                hosts_or_uri = ','.join(['%s:%s' % (h, port) for h in host])
-
-                cluster_config['params']['hosts_or_uri'] = hosts_or_uri
+                cluster_config = self._convert_for_replica_set(cluster_config)
 
             self._clusters.append(cluster_config)
 
-            self._mapped_databases = []
+    def _parse_dbpath(self, dbpath):
+        """Converts the dbpath to a regexp pattern.
+
+        Transforms dbpath from a string or an array of strings to a
+        regexp pattern which will be used to match database names.
+
+        Args:
+            dbpath: a string or an array containing the databases to be matched
+                from a cluster.
+
+        Returns:
+            A regexp pattern that will match any of the desired databases on
+            on a cluster.
+        """
+        if isinstance(dbpath, list):
+            # Support dbpath param as an array.
+            dbpath = '|'.join(dbpath)
+
+        # Append $ (end of string) so that twit will not match twitter!
+        if not dbpath.endswith('$'):
+            dbpath = '(%s)$' % dbpath
+
+        return dbpath
+
+    def _get_read_preference(self, read_preference):
+        """Converts read_preference from string to pymongo.ReadPreference value.
+
+            Args:
+                read_preference: string containig the read_preference from the
+                    config file
+            Returns:
+                A value from the pymongo.ReadPreference enum
+
+            Raises:
+                Exception: Invalid read preference"""
+        read_preference = getattr(pymongo.ReadPreference, read_preference, None)
+        if read_preference is None:
+            raise ValueError('Invalid read preference: %s' % read_preference)
+        return read_preference
+
+    def _convert_for_replica_set(self, cluster_config):
+        """Converts the cluster config to be used with MongoReplicaSetClient.
+
+        MongoReplicaSetClient has a slightly different API from MongoClient.
+        Changes host field into hosts_or_uri and moves port into the
+        hosts_or_uri field.
+
+        Args:
+            cluster_config: Dictinary containing parameters for a MongoClient.
+
+        Returns:
+            A dictionary containing parameters for creating a
+            MongoReplicaSetClient.
+        """
+
+        host = cluster_config['params'].pop('host')
+        port = cluster_config['params'].pop('port')
+
+        if not isinstance(host, list):
+            host = [host]
+        hosts_or_uri = ','.join(['%s:%s' % (h, port) for h in host])
+
+        cluster_config['params']['hosts_or_uri'] = hosts_or_uri
+        return cluster_config
 
     def set_timeout(self, network_timeout):
         """ Sets the timeout for existing and future Clients. """

@@ -128,8 +128,9 @@ class MongoPoolTestCase(TestCase):
         self.pool.set_timeout(new_timeout)
 
         db1 = self.pool.db1
+        # import ipdb; ipdb.set_trace()
         self.call_arguments['socketTimeoutMS'] = new_timeout
-        mock_MongoClient.assert_called_with(**self.call_arguments)
+        mock_MongoClient.assert_called_once_with(**self.call_arguments)
 
         call_arguments = {'hosts_or_uri': '127.0.0.1:27017',
                           'replicaSet': 'rset0',
