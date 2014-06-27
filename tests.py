@@ -12,7 +12,7 @@ class MongoPoolTestCase(TestCase):
                        {'label2': {'host': '127.0.0.1',
                                    'port': 27017,
                                    'dbpath': 'db2',
-                                   'replica_set': 'rset0'}},
+                                   'replicaSet': 'rset0'}},
                        {'label3': {'host': '127.0.0.1',
                                    'port': 27018,
                                    'dbpath': 'dbp'}},
@@ -38,7 +38,7 @@ class MongoPoolTestCase(TestCase):
     @patch('mongopool.pymongo.MongoClient')
     def test_creates_simple_client(self, mock_MongoClient):
         """
-        Ensure that a MongoClient is created when replica_set is not specified
+        Ensure that a MongoClient is created when replicaSet is not specified
         in the configuratiosn
         """
         db1 = self.pool.db1
@@ -48,7 +48,7 @@ class MongoPoolTestCase(TestCase):
     @patch('mongopool.pymongo.MongoReplicaSetClient')
     def test_creates_mongo_replica_set_client(self, mock_MongoReplicaSetClient):
         """
-        Ensure that a MongoReplicaSetClient is created when replica_set is
+        Ensure that a MongoReplicaSetClient is created when replicaSet is
         specified in the configuratiosn
         """
         db2 = self.pool.db2
@@ -128,7 +128,6 @@ class MongoPoolTestCase(TestCase):
         self.pool.set_timeout(new_timeout)
 
         db1 = self.pool.db1
-        # import ipdb; ipdb.set_trace()
         self.call_arguments['socketTimeoutMS'] = new_timeout
         mock_MongoClient.assert_called_once_with(**self.call_arguments)
 

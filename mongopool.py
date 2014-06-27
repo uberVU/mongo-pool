@@ -64,9 +64,9 @@ class MongoPool(object):
                 'label': label
             }
 
-            replica_set = cfg.get('replica_set')
-            if replica_set:
-                cluster_config['params']['replicaSet'] = replica_set
+            replicaSet = cfg.get('replicaSet')
+            if replicaSet:
+                cluster_config['params']['replicaSet'] = replicaSet
                 cluster_config = self._convert_for_replica_set(cluster_config)
 
             self._clusters.append(cluster_config)
