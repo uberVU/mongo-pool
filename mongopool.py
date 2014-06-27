@@ -73,6 +73,7 @@ class MongoPool(object):
             self._mapped_databases = []
 
     def set_timeout(self, network_timeout):
+        """ Sets the timeout for existing and future Clients. """
         # Do nothing if attempting to set the same timeout twice.
         if network_timeout == self._network_timeout:
             return
@@ -82,7 +83,7 @@ class MongoPool(object):
         self.disconnect()
 
     def disconnect(self):
-        """ Disconnect from all MongoDB connections. """
+        """ Disconnect from all MongoDB Clients. """
         for cluster in self._clusters:
             if 'connection' in cluster:
                 c = cluster.pop('connection')
