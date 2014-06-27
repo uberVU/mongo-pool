@@ -14,8 +14,8 @@ class MongoPool(object):
 
     def __init__(self, config=None, network_timeout=None):
 
-        if config == None:
-            raise Exception('Not configurations provided')
+        if config is None:
+            raise Exception('No configurations provided')
 
         # Set timeout.
         self._network_timeout = network_timeout
