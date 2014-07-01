@@ -39,19 +39,22 @@ class MongoPoolTestCase(TestCase):
     def test_creates_simple_client(self, mock_MongoClient):
         """
         Ensure that a MongoClient is created when replicaSet is not specified
-        in the configuratiosn
+        in the configurations and the correct database is returned
         """
+        mock = mock_MongoClient()
         db1 = self.pool.db1
-
         mock_MongoClient.assert_called_with(**self.call_arguments)
+        mock.__getitem__.assert_called_once_with('db1')
 
     @patch('mongopool.mongopool.pymongo.MongoReplicaSetClient')
     def test_creates_mongo_replica_set_client(self, mock_MongoReplicaSetClient):
         """
         Ensure that a MongoReplicaSetClient is created when replicaSet is
-        specified in the configuratiosn
+        specified in the configurations and the correct database is returned
         """
+        mock = mock_MongoReplicaSetClient()
         db2 = self.pool.db2
+        import ipdb; ipdb.set_trace()
         call_arguments = {'hosts_or_uri': '127.0.0.1:27017',
                           'replicaSet': 'rset0',
                           'safe': True,
@@ -59,6 +62,7 @@ class MongoPoolTestCase(TestCase):
                           'socketTimeoutMS': None}
 
         mock_MongoReplicaSetClient.assert_called_with(**call_arguments)
+        mock.__getitem__.assert_called_once_with('db2')
 
     def test_exception_is_raised_when_the_database_is_not_configured(self):
         """
