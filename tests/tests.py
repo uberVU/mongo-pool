@@ -51,7 +51,6 @@ class MongoPoolTestCase(TestCase):
         """
         mock = mock_MongoReplicaSetClient()
         db2 = self.pool.db2
-        import ipdb; ipdb.set_trace()
         call_arguments = {'hosts_or_uri': '127.0.0.1:27017',
                           'replicaSet': 'rset0',
                           'safe': True,
