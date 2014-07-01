@@ -155,8 +155,8 @@ class MongoPool(object):
         """Disconnect from all MongoDB Clients."""
         for cluster in self._clusters:
             if 'connection' in cluster:
-                c = cluster.pop('connection')
-                c.close()
+                connection = cluster.pop('connection')
+                connection.close()
         # Remove all attributes that are database names so that next time
         # when they are accessed, __getattr__ will be called and will create
         # new Clients
