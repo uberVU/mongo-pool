@@ -33,10 +33,10 @@ class MongoPool(object):
                 {label: {host, port, read_preference, replicaSet, dbpath}}.
 
         Raises:
-            Exception('No configurations provided'): no configuration provided.
+            Exception('No configuration provided'): no configuration provided.
         """
         if config is None:
-            raise Exception('No configurations provided')
+            raise Exception('No configuration provided')
 
         for config_dict in config:
             label = config_dict.keys()[0]
