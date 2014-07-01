@@ -1,16 +1,12 @@
 import re
 import pymongo
 
-from singleton import Singleton
-
 
 class MongoPool(object):
     """
         Manages multiple mongo connections to different clusters, and performs
         database to connection matching.
     """
-
-    __metaclass__ = Singleton
 
     def __init__(self, config=None, network_timeout=None):
 

@@ -32,9 +32,6 @@ class MongoPoolTestCase(TestCase):
                                'socketTimeoutMS': None}
         self.pool = MongoPool(self.config)
 
-    def tearDown(self):
-        self.pool.__metaclass__._instances = {}
-
     @patch('mongopool.mongopool.pymongo.MongoClient')
     def test_creates_simple_client(self, mock_MongoClient):
         """
