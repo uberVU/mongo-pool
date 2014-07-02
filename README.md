@@ -6,8 +6,16 @@ MongoPool is a tool that manages your mongo clients to different clusters, maps 
 
 ##Install
 
- - .
- - .
+###PyPi
+```bash
+$ sudo pip install mongopool
+```
+###Manual
+```bash
+$ git clone https://github.com/uberVU/mongopool
+$ cd mongopool
+$ sudo python setup.py install
+```
  
 ##Usage
 All you have to do in order to get started is to build a list of dictionaries which contains the neccessary information to connect to the clusters, instantiate MongoPool and access databases through dot notation. 
@@ -53,7 +61,7 @@ Database(MongoClient('127.0.0.1', 27017), u'comments_012014')
 Database(MongoClient('127.0.0.1', 27017), u'comments_032014')
 ```
 
-**Caution**: this is a strong feature, but it should be used with attention. Dbpaths will be matched in the order you put them in the configurations tlist, so make sure you order them from the most particular to the most general to avoid mapping too many databases on a single cluster.
+**Caution**: This is a strong feature, but it should be used carefully. Dbpaths will be matched in the order you put them in the configurations list, so make sure you order them from the most particular to the most general in order to avoid creating incorrect mappings and connect to the wrong cluster.
 
 **Wrong**
 ```python
@@ -66,7 +74,7 @@ config = [{'cluster1': {'host': '127.0.0.1', 'port': 27017, 'dbpath': ['blogs', 
 	         {'cluster2': {'host': '127.0.0.1', 'port': 27017, 'dbpath': '.*'}}]
 ```
 
-MongoPool also manages connections to ReplicaSets. All you have to do is to add the name of the replica set in configuration. Also, if you want a read_preference different from PRIMARY, you can specify it in the config.
+MongoPool also manages connections to ReplicaSets. All you have to do is to add the name of the replica set in the configuration. Also, if you want a read_preference different from PRIMARY, you can specify it in the config.
 ```python
 >>> from mongopool import MongoPool
 >>> 
