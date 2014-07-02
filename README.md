@@ -1,4 +1,4 @@
-MongoPool
+MongoPool [![Build Status](https://travis-ci.org/uberVU/mongopool.svg?branch=master)](https://travis-ci.org/uberVU/mongopool)
 =========
 ##Description
 
