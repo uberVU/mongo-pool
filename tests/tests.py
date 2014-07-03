@@ -32,6 +32,79 @@ class MongoPoolTestCase(TestCase):
                                'socketTimeoutMS': None}
         self.pool = MongoPool(self.config)
 
+    def test_raises_exception_for_invalid_host(self):
+        config = [{'label': {'port': 27017, 'dbpath': '.*'}}]
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['host'] = 1
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['host'] = '127.0.0.1'
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+
+    def test_raises_exception_for_invalid_port(self):
+        config = [{'label': {'host': '127.0.0.1', 'dbpath': '.*'}}]
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['port'] = 'a'
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['port'] = 27017
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+    def test_rasies_exception_for_invalid_dbpath(self):
+        config = [{'label': {'host': '127.0.0.1', 'port': 27017}}]
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['dbpath'] = 1
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['dbpath'] = '.*'
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+        config[0]['label']['dbpath'] = ['db1', 'db2']
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+
+    def test_rasies_exception_for_invalid_replicaSet(self):
+        config = [{'label': {'host': '127.0.0.1', 'port': 27017,
+                             'dbpath': '.*'}}]
+        config[0]['label']['replicaSet'] = 1
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['replicaSet'] = 'rset0'
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+
+    def test_rasies_exception_for_invalid_read_preference(self):
+        config = [{'label': {'host': '127.0.0.1', 'port': 27017,
+                             'dbpath': '.*'}}]
+        config[0]['label']['read_preference'] = 1
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['read_preference'] = 'primary'
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+
     @patch('mongopool.mongopool.pymongo.MongoClient')
     def test_creates_simple_client(self, mock_MongoClient):
         """
