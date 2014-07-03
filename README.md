@@ -88,7 +88,7 @@ Database(MongoReplicaSetClient([u'127.0.0.1:27019', u'127.0.0.1:27020', u'127.0.
 
 By default, MongoClient and MongoReplicaSetClient do not have a timeout set, though sometimes it is handy. To set a timeout for you connection you can either pass it as a second argument while instantiating MongoPool or use the set_timeout method which will recreate all connections with the new timeout and create all new connections with the new value.
 ```python
-mongopool = MongoPool(config, 2)
+mongopool = MongoPool(config, network_timeout=2)
 ...
-mongopool.set_timeout(5)
+mongopool.set_timeout(network_timeout=5)
 ```
