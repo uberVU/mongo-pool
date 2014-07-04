@@ -8,8 +8,8 @@ class MongoPool(object):
         database to connection matching.
     """
 
-    def __init__(self, config=None, network_timeout=None):
-
+    def __init__(self, config=None, network_timeout=None, connection_class=None,
+                 rset_connection_class=None):
 
         # Set timeout.
         self._network_timeout = network_timeout
@@ -18,6 +18,10 @@ class MongoPool(object):
         self._clusters = []
         self._parse_configs(config)
         self._mapped_databases = []
+
+        self._connection_class = connection_class or pymongo.MongoClient
+        self._rset_connection_class = (rset_connection_class or
+                                       pymongo.MongoReplicaSetClient)
 
     def _parse_configs(self, config):
         """Builds a dict with information to connect to Clusters.
@@ -176,12 +180,12 @@ class MongoPool(object):
         """
         if 'connection' not in cluster:
             if 'replicaSet' in cluster['params']:
-                cluster['connection'] = pymongo.MongoReplicaSetClient(
+                cluster['connection'] = self._rset_connection_class(
                     socketTimeoutMS=self._network_timeout,
                     safe=True,
                     **cluster['params'])
             else:
-                cluster['connection'] = pymongo.MongoClient(
+                cluster['connection'] = self._connection_class(
                     socketTimeoutMS=self._network_timeout,
                     safe=True,
                     **cluster['params'])
