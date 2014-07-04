@@ -59,6 +59,7 @@ class MongoPoolTestCase(TestCase):
         except TypeError:
             self.fail('MongoPool._validate_config raised Type Error while '
                       'valid config was provided')
+
     def test_rasies_exception_for_invalid_dbpath(self):
         config = [{'label': {'host': '127.0.0.1', 'port': 27017}}]
         with self.assertRaises(TypeError):

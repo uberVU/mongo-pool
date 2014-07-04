@@ -14,12 +14,12 @@ class MongoPool(object):
 
         # { label -> cluster config } dict
         self._clusters = []
-        self._validate_configs(config)
+        self._validate_config(config)
         self._parse_configs(config)
         self._mapped_databases = []
 
     @staticmethod
-    def _validate_configs(config):
+    def _validate_config(config):
         """Validate that the provided configurtion is valid.
 
         Each dictionary in the configuration list must have the following
@@ -39,7 +39,7 @@ class MongoPool(object):
 
         for config_dict in config:
             if not isinstance(config_dict, dict):
-                raise TypeError('Config must be a list of dicts')
+                raise TypeError('Config must be a list of dictionaries')
             label = config_dict.keys()[0]
             cfg = config_dict[label]
             if not isinstance(cfg, dict):
