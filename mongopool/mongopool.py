@@ -19,15 +19,9 @@ class MongoPool(object):
         self._parse_configs(config)
         self._mapped_databases = []
 
-        if connection_class is None:
-            self._connection_class = pymongo.MongoClient
-        else:
-            self._connection_class = connection_class
-
-        if rset_connection_class is None:
-            self._rset_connection_class = pymongo.MongoReplicaSetClient
-        else:
-            self._rset_connection_class = rset_connection_class
+        self._connection_class = connection_class or pymongo.MongoClient
+        self._rset_connection_class = (rset_connection_class or
+                                       pymongo.MongoReplicaSetClient)
 
     def _parse_configs(self, config):
         """Builds a dict with information to connect to Clusters.
