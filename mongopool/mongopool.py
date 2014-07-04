@@ -8,16 +8,75 @@ class MongoPool(object):
         database to connection matching.
     """
 
-    def __init__(self, config=None, network_timeout=None):
-
-
+    def __init__(self, config, network_timeout=None, connection_class=None,
+                 rset_connection_class=None):
         # Set timeout.
         self._network_timeout = network_timeout
 
         # { label -> cluster config } dict
         self._clusters = []
+        self._validate_config(config)
         self._parse_configs(config)
         self._mapped_databases = []
+
+        self._connection_class = connection_class or pymongo.MongoClient
+        self._rset_connection_class = (rset_connection_class or
+                                       pymongo.MongoReplicaSetClient)
+
+    @staticmethod
+    def _validate_config(config):
+        """Validate that the provided configurtion is valid.
+
+        Each dictionary in the configuration list must have the following
+        mandatory entries :
+            {label: {host(string), port(int), dbpath(string|list of strings)}}
+        It can also contain 2 optional keys:
+            {replicaSet(string), read_preference(string)}
+
+        Args:
+            config: the list of configurations provided at instantiation
+
+        Raises:
+            TypeError: a fault in the configurations is found
+        """
+        if not isinstance(config, list):
+            raise TypeError('Config must be a list')
+
+        for config_dict in config:
+            if not isinstance(config_dict, dict):
+                raise TypeError('Config must be a list of dictionaries')
+            label = config_dict.keys()[0]
+            cfg = config_dict[label]
+            if not isinstance(cfg, dict):
+                raise TypeError('Config structure is broken')
+
+            if 'host' not in cfg:
+                raise TypeError('Config entries must have a value for host')
+            if not isinstance(cfg['host'], str):
+                raise TypeError('Host must be a string')
+
+            if 'port' not in cfg:
+                raise TypeError('Config entries must have a value for port')
+            if not isinstance(cfg['port'], int):
+                raise TypeError('Port must be an int')
+
+            if 'dbpath' not in cfg:
+                raise TypeError('Config entries must have a value for dbpath')
+            if not isinstance(cfg['dbpath'], str):
+                if not isinstance(cfg['dbpath'], list):
+                    raise TypeError('Dbpath must either a string or a list of '
+                                    'strings')
+                for dbpath in cfg['dbpath']:
+                    if not isinstance(dbpath, str):
+                        raise TypeError('Dbpath must either a string or a list '
+                                        'of strings')
+
+            if 'replicaSet' in cfg and not isinstance(cfg['replicaSet'], str):
+                raise TypeError('ReplicaSet must be a string')
+
+            if ('read_preference' in cfg and
+                not isinstance(cfg['read_preference'], str)):
+                raise TypeError('Read_preference must be a string')
 
     def _parse_configs(self, config):
         """Builds a dict with information to connect to Clusters.
@@ -35,9 +94,6 @@ class MongoPool(object):
         Raises:
             Exception('No configuration provided'): no configuration provided.
         """
-        if config is None:
-            raise Exception('No configuration provided')
-
         for config_dict in config:
             label = config_dict.keys()[0]
             cfg = config_dict[label]
@@ -67,7 +123,8 @@ class MongoPool(object):
 
             self._clusters.append(cluster_config)
 
-    def _parse_dbpath(self, dbpath):
+    @staticmethod
+    def _parse_dbpath(dbpath):
         """Converts the dbpath to a regexp pattern.
 
         Transforms dbpath from a string or an array of strings to a
@@ -91,7 +148,8 @@ class MongoPool(object):
 
         return dbpath
 
-    def _get_read_preference(self, read_preference):
+    @staticmethod
+    def _get_read_preference(read_preference):
         """Converts read_preference from string to pymongo.ReadPreference value.
 
             Args:
@@ -107,7 +165,8 @@ class MongoPool(object):
             raise ValueError('Invalid read preference: %s' % read_preference)
         return read_preference
 
-    def _convert_for_replica_set(self, cluster_config):
+    @staticmethod
+    def _convert_for_replica_set(cluster_config):
         """Converts the cluster config to be used with MongoReplicaSetClient.
 
         MongoReplicaSetClient has a slightly different API from MongoClient.
@@ -176,12 +235,12 @@ class MongoPool(object):
         """
         if 'connection' not in cluster:
             if 'replicaSet' in cluster['params']:
-                cluster['connection'] = pymongo.MongoReplicaSetClient(
+                cluster['connection'] = self._rset_connection_class(
                     socketTimeoutMS=self._network_timeout,
                     safe=True,
                     **cluster['params'])
             else:
-                cluster['connection'] = pymongo.MongoClient(
+                cluster['connection'] = self._connection_class(
                     socketTimeoutMS=self._network_timeout,
                     safe=True,
                     **cluster['params'])
@@ -201,8 +260,7 @@ class MongoPool(object):
         for config in self._clusters:
             if re.match(config['pattern'], dbname):
                 return config
-        else:
-            raise Exception('No such database %s.' % dbname)
+        raise Exception('No such database %s.' % dbname)
 
     def __getattr__(self, name):
         """Map a database name to the coresponding pymongo.Database instance"""
