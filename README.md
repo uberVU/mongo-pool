@@ -1,23 +1,28 @@
 MongoPool [![Build Status](https://travis-ci.org/uberVU/mongopool.svg?branch=master)](https://travis-ci.org/uberVU/mongopool)
 =========
+- [Description](#description)
+- [Install](#install)
+- [Usage](#usage)
+- [Setting it up](#setting-it-up)
+
 ##Description
 
 MongoPool is a tool that manages your mongo clients to different clusters, maps databases to clients and allows you to work only with database names without worrying about creating and managing connections.
 
-##Install
+## Install
 
-###PyPi
+### PyPi
 ```bash
 $ sudo pip install mongopool
 ```
-###Manual
+### Manual
 ```bash
 $ git clone https://github.com/uberVU/mongopool
 $ cd mongopool
 $ sudo python setup.py install
 ```
 
-##Usage
+## Usage
 All you have to do in order to get started is to build a list of dictionaries which contains the neccessary information to connect to the clusters, instantiate MongoPool and access databases through dot notation.
 ```python
 >>> from mongopool import MongoPool
@@ -93,7 +98,32 @@ mongopool = MongoPool(config, network_timeout=2)
 mongopool.set_timeout(network_timeout=5)
 ```
 
-####Custom connection classes support
+#### Custom connection classes support
 If you want to use your custom connection classes instead of MongoClient and MongoReplicaSetClient, you can do this by passing 2 optional arguments: connection_class and rset_connection_class.
 ```python
 mongopool = MongoPool(config, connection_class=MyClass, rset_connection_class=MyOther(Class)
+```
+## Setting it up
+Along with the project we provide a sample config file to easily get started. In order to work with it, you have to launch multiple mongod instances on different ports. For this purpose, you can run the **start_instances.sh** script. If you don't wish to open many mongod instances, you can change all port values in the config file to 27017 and delete **label3** entry which uses a replicaSet.
+```bash
+cd mongopool # make sure that you are in the mongopool main directory
+./start_instances.sh # or modify sample_config.yml file
+python
+```
+And then run the following commands:
+```python
+import os
+import yaml
+from mongopool import MongoPool
+
+filename = os.path.join(os.getcwd(), 'sample_config.yml')
+options = yaml.load(open(filename))
+config = options['mongopool']
+pool = MongoPool(config)
+```
+Now you should have a working mongopool instance which you can play with.
+When you are done, run:
+```bash
+./clean_instances.sh
+```
+This will ensure that all created databases are deleted and all mongod instances are shutdown
