@@ -1,0 +1,19 @@
+mongopool:
+  - label1:
+      host: 127.0.0.1
+      port: 27017
+      dbpath: mpool_db1
+  - label2:
+      host: 127.0.0.1
+      port: 27018
+      dbpath: [mpool_db2, mpool_db3]
+  - label3:
+      host: 127.0.0.1
+      port: 27019
+      replicaSet: rset0
+      read_preference: secondary
+      dbpath: mpool_db4
+  - label4:
+      host: 127.0.0.1
+      port: 27022
+      dbpath: mpool.*
