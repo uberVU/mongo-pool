@@ -245,3 +245,14 @@ class MongoPoolTestCase(TestCase):
                           'read_preference': 0}
         db2 = pool.db2
         mock_MongoReplicaSetClient.assert_called_with(**call_arguments)
+
+    @patch('mongopool.mongopool.pymongo.MongoClient')
+    def test_that_connections_are_saved(self, mock_MongoClient):
+        pool = MongoPool(self.config)
+        db1 = pool.dbpattern1
+        mock_MongoClient.reset_mock()
+        db2 = pool.dbpattern2
+
+        self.assertFalse(mock_MongoClient.called, "New connections are "
+                         "created for each database access")
+
