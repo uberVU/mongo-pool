@@ -245,3 +245,22 @@ class MongoPoolTestCase(TestCase):
                           'read_preference': 0}
         db2 = pool.db2
         mock_MongoReplicaSetClient.assert_called_with(**call_arguments)
+
+    def test_get_cluster_inexistent(self):
+        """Tests that mongopool raises an exception when it is required to
+        return a connection to a cluster that is not present in the config"""
+        mongopool = MongoPool(self.config)
+        with self.assertRaises(AttributeError):
+            mongopool.get_cluster('_doesntexist')
+
+    @patch('mongopool.mongopool.pymongo.MongoClient')
+    def test_get_cluster_existent(self, ReconnectingConnection_mock):
+        """Tests that mongopool's get_cluster returns the correct connection to
+        a cluster"""
+        mongopool = MongoPool(self.config)
+        mongopool.get_cluster('label1')
+
+        ReconnectingConnection_mock.assert_called_once_with(**self.call_arguments)
+        mongopool.db1
+        # Test that is the same connection used for databases in mongoi dbpath
+        ReconnectingConnection_mock.assert_called_once_with(**self.call_arguments)
