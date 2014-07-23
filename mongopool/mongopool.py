@@ -23,6 +23,24 @@ class MongoPool(object):
         self._rset_connection_class = (rset_connection_class or
                                        pymongo.MongoReplicaSetClient)
 
+    def get_cluster(self, label):
+        """Returns a connection to a mongo-clusters.
+
+        Args:
+            label (string): the label of a cluster.
+
+        Returns:
+            A connection to the cluster labeld with label.
+
+        Raises:
+            AttributeError: there is no cluster with the given label in the
+                config
+        """
+        for cluster in self._clusters:
+            if label == cluster['label']:
+                return self._get_connection(cluster)
+        raise AttributeError('No such cluster %s.' % label)
+
     @staticmethod
     def _validate_config(config):
         """Validate that the provided configurtion is valid.
