@@ -268,3 +268,13 @@ class MongoPoolTestCase(TestCase):
         mongopool.db1
         # Test that is the same connection used for databases in mongoi dbpath
         ReconnectingConnection_mock.assert_called_once_with(**self.call_arguments)
+
+    @patch('mongopool.mongopool.pymongo.MongoClient')
+    def test_that_connections_are_saved(self, mock_MongoClient):
+        pool = MongoPool(self.config)
+        pool.dbpattern1
+        mock_MongoClient.reset_mock()
+        pool.dbpattern2
+
+        self.assertFalse(mock_MongoClient.called, "New connections are "
+                         "created for each database access")

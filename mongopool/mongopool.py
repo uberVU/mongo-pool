@@ -280,12 +280,17 @@ class MongoPool(object):
                 return config
         raise Exception('No such database %s.' % dbname)
 
+    def _get_connection_by_db_name(self, db_name):
+        config = self._match_dbname(db_name)
+        return self._get_connection(config)
+
+    def _init_database(self, connection, db_name):
+        return connection[db_name]
+
     def __getattr__(self, name):
         """Map a database name to the coresponding pymongo.Database instance"""
-        config = self._match_dbname(name)
-        connection = self._get_connection(config)
-        db_name = name
-        database = connection[db_name]
+        connection = self._get_connection_by_db_name(name)
+        database = self._init_database(connection, name)
         # Remember this name->database mapping on the object. This will cause
         # future references to the same name to NOT invoke self.__getattr__,
         # and be resolved directly at object level.
