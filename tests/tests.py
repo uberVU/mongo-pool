@@ -139,7 +139,7 @@ class MongoPoolTestCase(TestCase):
         """
         pool = MongoPool(self.config)
         mock = mock_MongoClient()
-        db1 = pool.db1
+        pool.db1
         mock_MongoClient.assert_called_with(**self.call_arguments)
         mock.__getitem__.assert_called_once_with('db1')
 
@@ -151,7 +151,7 @@ class MongoPoolTestCase(TestCase):
         """
         pool = MongoPool(self.config)
         mock = mock_MongoReplicaSetClient()
-        db2 = pool.db2
+        pool.db2
         call_arguments = {'hosts_or_uri': '127.0.0.1:27017',
                           'replicaSet': 'rset0',
                           'safe': True,
@@ -177,9 +177,9 @@ class MongoPoolTestCase(TestCase):
         given order and a Client connecting to the first match is returned
         """
         pool = MongoPool(self.config)
-        db1 = pool.dbp
-        db2 = pool.dbpattern123
-        db3 = pool.dbpat
+        pool.dbp
+        pool.dbpattern123
+        pool.dbpat
 
         self.call_arguments['port'] = 27018
         calls = [call(**self.call_arguments)]
@@ -213,7 +213,7 @@ class MongoPoolTestCase(TestCase):
         new_timeout = 5
         pool.set_timeout(new_timeout)
 
-        db1 = pool.db1
+        pool.db1
         self.call_arguments['socketTimeoutMS'] = new_timeout
 
         mock_MongoClient.assert_called_with(**self.call_arguments)
@@ -228,13 +228,13 @@ class MongoPoolTestCase(TestCase):
         """
         pool = MongoPool(self.config)
         new_timeout = 5
-        db1 = pool.db1
-        db2 = pool.db2
+        pool.db1
+        pool.db2
         mock_MongoClient.reset_mock()
         mock_MongoReplicaSetClient.reset_mock()
         pool.set_timeout(new_timeout)
 
-        db1 = pool.db1
+        pool.db1
         self.call_arguments['socketTimeoutMS'] = new_timeout
         mock_MongoClient.assert_called_once_with(**self.call_arguments)
 
@@ -243,20 +243,24 @@ class MongoPoolTestCase(TestCase):
                           'socketTimeoutMS': new_timeout,
                           'safe': True,
                           'read_preference': 0}
-        db2 = pool.db2
+        pool.db2
         mock_MongoReplicaSetClient.assert_called_with(**call_arguments)
 
     def test_get_cluster_inexistent(self):
-        """Tests that mongopool raises an exception when it is required to
-        return a connection to a cluster that is not present in the config"""
+        """
+        Ensure that mongopool raises an exception when it is required to
+        return a connection to a cluster that is not present in the config
+        """
         mongopool = MongoPool(self.config)
         with self.assertRaises(AttributeError):
             mongopool.get_cluster('_doesntexist')
 
     @patch('mongopool.mongopool.pymongo.MongoClient')
     def test_get_cluster_existent(self, ReconnectingConnection_mock):
-        """Tests that mongopool's get_cluster returns the correct connection to
-        a cluster"""
+        """
+        Ensures that mongopool's get_cluster returns the correct connection to
+        a cluster
+        """
         mongopool = MongoPool(self.config)
         mongopool.get_cluster('label1')
 
