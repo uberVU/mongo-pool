@@ -59,12 +59,34 @@ class MongoPoolTestCase(TestCase):
 
     def test_raises_exception_for_invalid_host(self):
         config = [{'label': {'port': 27017, 'dbpath': '.*'}}]
+        # Expect exception to be raised when no host is provided
         with self.assertRaises(TypeError):
             MongoPool(config)
+
+        # Expect exception to be raised when host is neither a string,
+        # nor a list
         config[0]['label']['host'] = 1
         with self.assertRaises(TypeError):
             MongoPool(config)
+
+        # Expect exception to be raised when host is a list, but replicaSet
+        # is not present
+        config[0]['label']['host'] = [1]
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+
+        # Expect validation to pass when host is a string
         config[0]['label']['host'] = '127.0.0.1'
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+
+        # Expect validation to pass when host is a list and replicaSet is
+        # provided in the config
+        config[0]['label']['replicaSet'] = 'rset'
+        config[0]['label']['host'] = ['127.0.0.1']
         try:
             MongoPool(config)
         except TypeError:

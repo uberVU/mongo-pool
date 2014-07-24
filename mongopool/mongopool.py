@@ -71,7 +71,12 @@ class MongoPool(object):
             if 'host' not in cfg:
                 raise TypeError('Config entries must have a value for host')
             if not isinstance(cfg['host'], str):
-                raise TypeError('Host must be a string')
+                if isinstance(cfg['host'], list):
+                    if not 'replicaSet' in cfg:
+                        raise TypeError('Host can be a list only when '
+                                        'replicaSet is provided.')
+                else:
+                    raise TypeError('Host must be a string or a list.')
 
             if 'port' not in cfg:
                 raise TypeError('Config entries must have a value for port')
