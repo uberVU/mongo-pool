@@ -17,7 +17,7 @@ long_description = read('README.rst')
 
 setup(
     name='mongopool',
-    version='0.1',
+    version='0.2',
     url='http://github.com/ubervu/mongopool/',
     description='The tool that keeps all your mongos in one place',
     long_description=long_description,
