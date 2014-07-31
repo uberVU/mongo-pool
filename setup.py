@@ -16,16 +16,16 @@ def read(*filenames, **kwargs):
 long_description = read('README.rst')
 
 setup(
-    name='mongopool',
-    version='0.1',
-    url='http://github.com/ubervu/mongopool/',
+    name='mongo-pool',
+    version='0.3',
+    url='http://github.com/ubervu/mongo-pool/',
     description='The tool that keeps all your mongos in one place',
     long_description=long_description,
     license='Apache Software License',
     author='UberVU',
     author_email="development@ubervu.com",
     install_requires=['pymongo>=2.4'],
-    packages=['mongopool'],
+    packages=['mongo_pool'],
     include_package_data=True,
     platforms='any',
     test_suite='nose.collector',

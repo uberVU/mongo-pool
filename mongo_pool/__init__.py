@@ -6,7 +6,6 @@ __all__ = ['mongo_pool']
 
 try:
     _dist = get_distribution('mongo-pool')
-    import ipdb; ipdb.set_trace()
     if not __file__.startswith(os.path.join(_dist.location, 'mongo_pool')):
         # not installed, but there is another version that *is*
         raise DistributionNotFound
