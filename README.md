@@ -27,8 +27,8 @@ $ sudo pip install mongopool
 ```
 ### Manual
 ```bash
-$ git clone https://github.com/uberVU/mongopool
-$ cd mongopool
+$ git clone https://github.com/uberVU/mongo-pool
+$ cd mongo-pool
 $ sudo python setup.py install
 ```
 
@@ -107,7 +107,7 @@ mongopool = MongoPool(config, connection_class=MyClass, rset_connection_class=My
 Along with the project we provide a sample config file to easily get started. In order to work with it, you have to launch multiple mongod instances on different ports. For this purpose, you can run the **start_instances.sh** script. If you don't wish to open many mongod instances, you can change all port values in the config file to 27017 and delete **label3** entry which uses a replicaSet.
 ```bash
 # make sure that you are in the mongopool main directory
-$ cd mongopool
+$ cd mongo-pool
 # run the provided script or modify sample_config.yml file
 $ ./start_instances.sh
 $ python
@@ -116,7 +116,7 @@ And then run the following commands:
 ```python
 import os
 import yaml
-from mongopool import MongoPool
+from mongo-pool import MongoPool
 
 filename = os.path.join(os.getcwd(), 'sample_config.yml')
 options = yaml.load(open(filename))

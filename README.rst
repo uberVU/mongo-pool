@@ -40,15 +40,15 @@ PyPi
 
 .. code:: bash
 
-  $ sudo pip install mongopool
+  $ sudo pip install mongo-pool
 
 Manual
 ------
 
 .. code:: bash
 
-    $ git clone https://github.com/uberVU/mongopool
-    $ cd mongopool
+    $ git clone https://github.com/uberVU/mongo-pool
+    $ cd mongo-pool
     $ sudo python setup.py install
 
 Usage
@@ -168,8 +168,8 @@ Along with the project we provide a sample config file to easily get started. In
 
 .. code:: bash
 
-  # make sure that you are in the mongopool main directory
-  $ cd mongopool
+  # make sure that you are in the mongo-pool main directory
+  $ cd mongo-pool
   # run the provided script or modify sample_config.yml file
   $ ./start_instances.sh $ python
 
@@ -178,7 +178,7 @@ And then run the following commands:
 .. code:: python
 
   python import os import yaml
-  from mongopool import MongoPool
+  from mongo-pool import MongoPool
 
   filename = os.path.join(os.getcwd(), 'sample\_config.yml')
   options = yaml.load(open(filename))

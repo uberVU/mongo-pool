@@ -1,7 +1,7 @@
 from mock import patch, call
 from unittest import TestCase
 import pymongo
-from mongopool import MongoPool
+from mongo_pool import MongoPool
 
 
 class MongoPoolTestCase(TestCase):
@@ -42,8 +42,8 @@ class MongoPoolTestCase(TestCase):
         self.assertIs(pool._rset_connection_class, pymongo.MongoReplicaSetClient,
                       "Does not use MongoReplicaSetClient by default.")
 
-    @patch('mongopool.mongopool.pymongo.ReplicaSetConnection')
-    @patch('mongopool.mongopool.pymongo.Connection')
+    @patch('mongo_pool.mongo_pool.pymongo.ReplicaSetConnection')
+    @patch('mongo_pool.mongo_pool.pymongo.Connection')
     def test_uses_passed_connection_class(self, mock_connection,
                                           mock_rset_connection):
         """
@@ -153,7 +153,7 @@ class MongoPoolTestCase(TestCase):
             self.fail('MongoPool._validate_config raised Type Error while '
                       'valid config was provided')
 
-    @patch('mongopool.mongopool.pymongo.MongoClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_creates_simple_client(self, mock_MongoClient):
         """
         Ensure that a MongoClient is created when replicaSet is not specified
@@ -165,7 +165,7 @@ class MongoPoolTestCase(TestCase):
         mock_MongoClient.assert_called_with(**self.call_arguments)
         mock.__getitem__.assert_called_once_with('db1')
 
-    @patch('mongopool.mongopool.pymongo.MongoReplicaSetClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoReplicaSetClient')
     def test_creates_mongo_replica_set_client(self, mock_MongoReplicaSetClient):
         """
         Ensure that a MongoReplicaSetClient is created when replicaSet is
@@ -192,7 +192,7 @@ class MongoPoolTestCase(TestCase):
         with self.assertRaisesRegexp(Exception, "No such database .*"):
             pool.inexistentdb
 
-    @patch('mongopool.mongopool.pymongo.MongoClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_matches_dbpaths_correctly(self, mock_MongoClient):
         """
         Ensure that dbpaths are matched in the order specified in the
@@ -213,7 +213,7 @@ class MongoPoolTestCase(TestCase):
         self.assertEqual(mock_MongoClient.call_args_list, calls,
                          "Didn't retrieve the databases in the correct order")
 
-    @patch('mongopool.mongopool.pymongo.MongoClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_matches_dbpaths_in_array(self, mock_MongoClient):
         """
         Ensure that the correct database is returned when specifying dbpaths
@@ -225,7 +225,7 @@ class MongoPoolTestCase(TestCase):
 
         mock_MongoClient.assert_called_with(**self.call_arguments)
 
-    @patch('mongopool.mongopool.pymongo.MongoClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_uses_set_timeout(self, mock_MongoClient):
         """
         Ensure that Clients are created with the correct timeout after
@@ -240,8 +240,8 @@ class MongoPoolTestCase(TestCase):
 
         mock_MongoClient.assert_called_with(**self.call_arguments)
 
-    @patch('mongopool.mongopool.pymongo.MongoReplicaSetClient')
-    @patch('mongopool.mongopool.pymongo.MongoClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoReplicaSetClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_recreates_clients_after_set_timeout(self, mock_MongoClient,
                                                  mock_MongoReplicaSetClient):
         """
@@ -270,28 +270,27 @@ class MongoPoolTestCase(TestCase):
 
     def test_get_cluster_inexistent(self):
         """
-        Ensure that mongopool raises an exception when it is required to
+        Ensure that raises an exception when it is required to
         return a connection to a cluster that is not present in the config
         """
-        mongopool = MongoPool(self.config)
+        pool = MongoPool(self.config)
         with self.assertRaises(AttributeError):
-            mongopool.get_cluster('_doesntexist')
+            pool.get_cluster('_doesntexist')
 
-    @patch('mongopool.mongopool.pymongo.MongoClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_get_cluster_existent(self, ReconnectingConnection_mock):
         """
-        Ensures that mongopool's get_cluster returns the correct connection to
-        a cluster
+        Ensures that get_cluster returns the correct connection to a cluster
         """
-        mongopool = MongoPool(self.config)
-        mongopool.get_cluster('label1')
+        pool = MongoPool(self.config)
+        pool.get_cluster('label1')
 
         ReconnectingConnection_mock.assert_called_once_with(**self.call_arguments)
-        mongopool.db1
+        pool.db1
         # Test that is the same connection used for databases in mongoi dbpath
         ReconnectingConnection_mock.assert_called_once_with(**self.call_arguments)
 
-    @patch('mongopool.mongopool.pymongo.MongoClient')
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_that_connections_are_saved(self, mock_MongoClient):
         pool = MongoPool(self.config)
         pool.dbpattern1
