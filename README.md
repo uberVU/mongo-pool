@@ -1,6 +1,7 @@
-MongoPool [![Build Status](https://travis-ci.org/uberVU/mongo-pool.svg?branch=master)](https://travis-ci.org/uberVU/mongo-pool)
-=========
-### _All your mongos in one place_
+![image](https://cloud.githubusercontent.com/assets/250750/5323889/4f7cf454-7cdd-11e4-81f0-7e3eee8f9556.png)
+
+### _All your mongos in one place_ 
+[![Build Status](https://travis-ci.org/uberVU/mongo-pool.svg?branch=master)](https://travis-ci.org/uberVU/mongo-pool)
 
 - [Description](#description)
 - [Install](#install)
