@@ -1,4 +1,4 @@
-MongoPool [![Build Status](https://travis-ci.org/uberVU/mongopool.svg?branch=master)](https://travis-ci.org/uberVU/mongopool)
+MongoPool [![Build Status](https://travis-ci.org/uberVU/mongo-pool.svg?branch=master)](https://travis-ci.org/uberVU/mongo-pool)
 =========
 ### _All your mongos in one place_
 
