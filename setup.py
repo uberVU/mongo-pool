@@ -13,18 +13,18 @@ def read(*filenames, **kwargs):
             buf.append(f.read())
     return sep.join(buf)
 
-long_description = read('README.rst')
+long_description = read('README.md')
 
 setup(
     name='mongo-pool',
-    version='0.3',
+    version='0.4',
     url='http://github.com/ubervu/mongo-pool/',
     description='The tool that keeps all your mongos in one place',
     long_description=long_description,
     license='Apache Software License',
     author='UberVU',
     author_email="development@ubervu.com",
-    install_requires=['pymongo>=2.4'],
+    install_requires=['pymongo>=3.0.3'],
     packages=['mongo_pool'],
     include_package_data=True,
     platforms='any',

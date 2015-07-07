@@ -9,7 +9,6 @@
   - [Basic Example](#basic-example)
   - [Multiple databases on the same cluster](#multiple-databases-on-the-same-cluster)
   - [Dynamic paths](#dynamic-paths)
-  - [Connecting to a replicaSet](#connecting-to-a-replicaSet)
   - [Setting a timeout](#setting-a-timeout)
   - [Custom connection classes support](#custom-connection-classes-support)
 - [Setting it up](#setting-it-up)
@@ -82,17 +81,8 @@ config = [{'cluster1': {'host': '127.0.0.1', 'port': 27017, 'dbpath': '.*'}},
 config = [{'cluster1': {'host': '127.0.0.1', 'port': 27017, 'dbpath': ['blogs', 'comments'}},
           {'cluster2': {'host': '127.0.0.1', 'port': 27017, 'dbpath': '.*'}}]
 ```
-#### Connecting to a replicaSet
-MongoPool also manages connections to ReplicaSets. All you have to do is to add the name of the replica set in the configuration. Also, if you want a read_preference different from PRIMARY, you can specify it in the config.
-```python
->>> config = [{'cluster1': {'host': '127.0.0.1', 'port': 27018, 'replicaSet': 'rset0',
-...                         'read_preference': 'secondary','dbpath': 'blogs'}}]
->>> mongopool = MongoPool(config)
->>> mongopool.blogs
-Database(MongoReplicaSetClient([u'127.0.0.1:27019', u'127.0.0.1:27020', u'127.0.0.1:27018']), u'blogs')
-```
 #### Setting a timeout
-By default, MongoClient and MongoReplicaSetClient do not have a timeout set, though sometimes it is handy. To set a timeout for you connection you can either pass it as a second argument while instantiating MongoPool or use the set_timeout method which will recreate all connections with the new timeout and create all new connections with the new value.
+By default, MongoClient does not have a timeout set, though sometimes it is handy. To set a timeout for you connection you can either pass it as a second argument while instantiating MongoPool or use the set_timeout method which will recreate all connections with the new timeout and create all new connections with the new value.
 ```python
 mongopool = MongoPool(config, network_timeout=2)
 ...
@@ -100,9 +90,9 @@ mongopool.set_timeout(network_timeout=5)
 ```
 
 #### Custom connection classes support
-If you want to use your custom connection classes instead of MongoClient and MongoReplicaSetClient, you can do this by passing 2 optional arguments: connection_class and rset_connection_class.
+If you want to use your custom connection classes instead of MongoClient you can do this by passing the optional argument: connection_class.
 ```python
-mongopool = MongoPool(config, connection_class=MyClass, rset_connection_class=MyOther(Class)
+mongopool = MongoPool(config, connection_class=MyClass)
 ```
 ## Setting it up
 Along with the project we provide a sample config file to easily get started. In order to work with it, you have to launch multiple mongod instances on different ports. For this purpose, you can run the **start_instances.sh** script. If you don't wish to open many mongod instances, you can change all port values in the config file to 27017 and delete **label3** entry which uses a replicaSet.
