@@ -8,8 +8,7 @@ class MongoPool(object):
         database to connection matching.
     """
 
-    def __init__(self, config, network_timeout=None, connection_class=None,
-                 rset_connection_class=None):
+    def __init__(self, config, network_timeout=None, connection_class=None):
         # Set timeout.
         self._network_timeout = network_timeout
 
@@ -20,8 +19,6 @@ class MongoPool(object):
         self._mapped_databases = []
 
         self._connection_class = connection_class or pymongo.MongoClient
-        self._rset_connection_class = (rset_connection_class or
-                                       pymongo.MongoReplicaSetClient)
 
     def get_cluster(self, label):
         """Returns a connection to a mongo-clusters.
@@ -48,8 +45,8 @@ class MongoPool(object):
         Each dictionary in the configuration list must have the following
         mandatory entries :
             {label: {host(string), port(int), dbpath(string|list of strings)}}
-        It can also contain 2 optional keys:
-            {replicaSet(string), read_preference(string)}
+        It can also contain 1 optional key:
+            {read_preference(string)}
 
         Args:
             config: the list of configurations provided at instantiation
@@ -70,13 +67,8 @@ class MongoPool(object):
 
             if 'host' not in cfg:
                 raise TypeError('Config entries must have a value for host')
-            if not isinstance(cfg['host'], str):
-                if isinstance(cfg['host'], list):
-                    if not 'replicaSet' in cfg:
-                        raise TypeError('Host can be a list only when '
-                                        'replicaSet is provided.')
-                else:
-                    raise TypeError('Host must be a string or a list.')
+            if not isinstance(cfg['host'], str) and not isinstance(cfg['host'], list):
+                raise TypeError('Host must be a string or a list.')
 
             if 'port' not in cfg:
                 raise TypeError('Config entries must have a value for port')
@@ -94,9 +86,6 @@ class MongoPool(object):
                         raise TypeError('Dbpath must either a string or a list '
                                         'of strings')
 
-            if 'replicaSet' in cfg and not isinstance(cfg['replicaSet'], str):
-                raise TypeError('ReplicaSet must be a string')
-
             if ('read_preference' in cfg and
                 not isinstance(cfg['read_preference'], str)):
                 raise TypeError('Read_preference must be a string')
@@ -112,7 +101,7 @@ class MongoPool(object):
             config: A list of dictionaries containing connecting and
                 identification information about Clusters.
                 A dict has the following structure:
-                {label: {host, port, read_preference, replicaSet, dbpath}}.
+                {label: {host, port, read_preference, dbpath}}.
 
         Raises:
             Exception('No configuration provided'): no configuration provided.
@@ -138,11 +127,6 @@ class MongoPool(object):
                 'pattern': pattern,
                 'label': label
             }
-
-            replicaSet = cfg.get('replicaSet')
-            if replicaSet:
-                cluster_config['params']['replicaSet'] = replicaSet
-                cluster_config = self._convert_for_replica_set(cluster_config)
 
             self._clusters.append(cluster_config)
 
@@ -188,31 +172,6 @@ class MongoPool(object):
             raise ValueError('Invalid read preference: %s' % read_preference)
         return read_preference
 
-    @staticmethod
-    def _convert_for_replica_set(cluster_config):
-        """Converts the cluster config to be used with MongoReplicaSetClient.
-
-        MongoReplicaSetClient has a slightly different API from MongoClient.
-        Changes host field into hosts_or_uri and moves port into the
-        hosts_or_uri field.
-
-        Args:
-            cluster_config: Dictinary containing parameters for a MongoClient.
-
-        Returns:
-            A dict containing parameters for creating a MongoReplicaSetClient.
-        """
-
-        host = cluster_config['params'].pop('host')
-        port = cluster_config['params'].pop('port')
-
-        if not isinstance(host, list):
-            host = [host]
-        hosts_or_uri = ','.join(['%s:%s' % (h, port) for h in host])
-
-        cluster_config['params']['hosts_or_uri'] = hosts_or_uri
-        return cluster_config
-
     def set_timeout(self, network_timeout):
         """Set the timeout for existing and future Clients.
 
@@ -256,17 +215,14 @@ class MongoPool(object):
             A MongoClient or MongoReplicaSetClient instance connected to the
             desired cluster
         """
+        # w=1 and j=True because:
+        # http://stackoverflow.com/questions/14798552/is-mongodb-2-x-write-concern-w-1-truly-equals-to-safe-true
         if 'connection' not in cluster:
-            if 'replicaSet' in cluster['params']:
-                cluster['connection'] = self._rset_connection_class(
-                    socketTimeoutMS=self._network_timeout,
-                    safe=True,
-                    **cluster['params'])
-            else:
-                cluster['connection'] = self._connection_class(
-                    socketTimeoutMS=self._network_timeout,
-                    safe=True,
-                    **cluster['params'])
+            cluster['connection'] = self._connection_class(
+                socketTimeoutMS=self._network_timeout,
+                w=1,
+                j=True,
+                **cluster['params'])
 
         return cluster['connection']
 
