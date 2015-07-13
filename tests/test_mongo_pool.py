@@ -25,7 +25,7 @@ class MongoPoolTestCase(TestCase):
         self.call_arguments = {'host': '127.0.0.1',
                                'port': 27017,
                                'w': 1,
-                               'j': True,
+                               'j': False,
                                'read_preference': Primary(),
                                'socketTimeoutMS': None}
 
