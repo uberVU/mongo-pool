@@ -17,7 +17,7 @@ long_description = read('README.md')
 
 setup(
     name='mongo-pool',
-    version='0.4',
+    version='0.4.1',
     url='http://github.com/ubervu/mongo-pool/',
     description='The tool that keeps all your mongos in one place',
     long_description=long_description,

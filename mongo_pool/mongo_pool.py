@@ -8,7 +8,8 @@ class MongoPool(object):
         database to connection matching.
     """
 
-    def __init__(self, config, network_timeout=None, connection_class=None):
+    def __init__(self, config, network_timeout=None, connection_class=None,
+                 j=False):
         # Set timeout.
         self._network_timeout = network_timeout
 
@@ -19,6 +20,8 @@ class MongoPool(object):
         self._mapped_databases = []
 
         self._connection_class = connection_class or pymongo.MongoClient
+        # Journaling for pymongo.
+        self.j = j
 
     def get_cluster(self, label):
         """Returns a connection to a mongo-clusters.
@@ -215,13 +218,13 @@ class MongoPool(object):
             A MongoClient or MongoReplicaSetClient instance connected to the
             desired cluster
         """
-        # w=1 and j=True because:
+        # w=1 because:
         # http://stackoverflow.com/questions/14798552/is-mongodb-2-x-write-concern-w-1-truly-equals-to-safe-true
         if 'connection' not in cluster:
             cluster['connection'] = self._connection_class(
                 socketTimeoutMS=self._network_timeout,
                 w=1,
-                j=True,
+                j=self.j,
                 **cluster['params'])
 
         return cluster['connection']
