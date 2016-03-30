@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from mock import patch, call
 from unittest import TestCase
 import pymongo
@@ -22,12 +24,14 @@ class MongoPoolTestCase(TestCase):
                        {'label6': {'host': '127.0.0.1',
                                    'port': 27021,
                                    'dbpath': ['arraydb1', 'arraydb\dxyz']}}]
+
         self.call_arguments = {'host': '127.0.0.1',
                                'port': 27017,
                                'w': 1,
                                'j': False,
                                'read_preference': Primary(),
-                               'socketTimeoutMS': None}
+                               'socketTimeoutMS': None,
+                               'replicaSet':None}
 
     def test_default_connection_classes(self):
         """
@@ -123,12 +127,47 @@ class MongoPoolTestCase(TestCase):
             self.fail('MongoPool._validate_config raised Type Error while '
                       'valid config was provided')
 
+    def test_rasies_exception_for_invalid_replica_set(self):
+        config = [{'label': {'host': '127.0.0.1', 'port': 27017,
+                             'dbpath': '.*'}}]
+        config[0]['label']['replicaSet'] = 1
+        with self.assertRaises(TypeError):
+            MongoPool(config)
+        config[0]['label']['replicaSet'] = 'replicaa'
+        try:
+            MongoPool(config)
+        except TypeError:
+            self.fail('MongoPool._validate_config raised Type Error while '
+                      'valid config was provided')
+
     @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
     def test_creates_simple_client(self, mock_MongoClient):
         """
         Ensure that a MongoClient is created when replicaSet is not specified
         in the configurations and the correct database is returned
         """
+        pool = MongoPool(self.config)
+        mock = mock_MongoClient()
+        pool.db1
+        mock_MongoClient.assert_called_with(**self.call_arguments)
+        mock.__getitem__.assert_called_once_with('db1')
+
+    @patch('mongo_pool.mongo_pool.pymongo.MongoClient')
+    def test_creates_replica_set_client(self, mock_MongoClient):
+        """
+        Ensure that a MongoClient is created when replicaSet is specified
+        in the configurations and the correct database is returned.
+        """
+        replica_set_name = 'replicaa'
+        replica_set_config = [
+            {'label1': {'host': ['127.0.0.1', '127.0.1.1'],
+                        'port': 27017,
+                        'dbpath': 'db1',
+                        'replicaSet': replica_set_name}
+            }]
+        call_args = deepcopy(self.call_arguments)
+        call_args['replicaSet'] = replica_set_name
+
         pool = MongoPool(self.config)
         mock = mock_MongoClient()
         pool.db1

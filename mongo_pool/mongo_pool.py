@@ -93,6 +93,10 @@ class MongoPool(object):
                 not isinstance(cfg['read_preference'], str)):
                 raise TypeError('Read_preference must be a string')
 
+            if ('replicaSet' in cfg and
+                not isinstance(cfg['replicaSet'], str)):
+                raise TypeError('replicaSet must be a string')
+
     def _parse_configs(self, config):
         """Builds a dict with information to connect to Clusters.
 
@@ -126,6 +130,7 @@ class MongoPool(object):
                     'host': cfg['host'],
                     'port': cfg['port'],
                     'read_preference': read_preference,
+                    'replicaSet': cfg.get('replicaSet')
                 },
                 'pattern': pattern,
                 'label': label
