@@ -1,4 +1,4 @@
-from mongo_pool import MongoPool
+from .mongo_pool import MongoPool
 from pkg_resources import get_distribution, DistributionNotFound
 import os.path
 
