@@ -8,7 +8,6 @@ class MongoPool(object):
         Manages multiple mongo connections to different clusters, and performs
         database to connection matching.
     """
-    pass
 
     def __init__(self, config, network_timeout=None, connection_class=None,
                  j=False):
