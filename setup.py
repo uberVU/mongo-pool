@@ -21,6 +21,7 @@ setup(
     url='http://github.com/ubervu/mongo-pool/',
     description='The tool that keeps all your mongos in one place',
     long_description=long_description,
+    long_description_content_type="text/markdown",
     license='Apache Software License',
     author='UberVU',
     author_email="development@ubervu.com",
