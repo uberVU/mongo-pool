@@ -1,5 +1,6 @@
-import re
 import pymongo
+import re
+import six
 
 
 class MongoPool(object):
@@ -10,6 +11,7 @@ class MongoPool(object):
 
     def __init__(self, config, network_timeout=None, connection_class=None,
                  j=False):
+        super(MongoPool, self).__init__()
         # Set timeout.
         self._network_timeout = network_timeout
 
@@ -63,14 +65,14 @@ class MongoPool(object):
         for config_dict in config:
             if not isinstance(config_dict, dict):
                 raise TypeError('Config must be a list of dictionaries')
-            label = config_dict.keys()[0]
+            label = list(config_dict.keys())[0]
             cfg = config_dict[label]
             if not isinstance(cfg, dict):
                 raise TypeError('Config structure is broken')
 
             if 'host' not in cfg:
                 raise TypeError('Config entries must have a value for host')
-            if not isinstance(cfg['host'], str) and not isinstance(cfg['host'], list):
+            if not isinstance(cfg['host'], six.string_types) and not isinstance(cfg['host'], list):
                 raise TypeError('Host must be a string or a list.')
 
             if 'port' not in cfg:
@@ -80,21 +82,21 @@ class MongoPool(object):
 
             if 'dbpath' not in cfg:
                 raise TypeError('Config entries must have a value for dbpath')
-            if not isinstance(cfg['dbpath'], str):
+            if not isinstance(cfg['dbpath'], six.string_types):
                 if not isinstance(cfg['dbpath'], list):
                     raise TypeError('Dbpath must either a string or a list of '
                                     'strings')
                 for dbpath in cfg['dbpath']:
-                    if not isinstance(dbpath, str):
+                    if not isinstance(dbpath, six.string_types):
                         raise TypeError('Dbpath must either a string or a list '
                                         'of strings')
 
             if ('read_preference' in cfg and
-                not isinstance(cfg['read_preference'], str)):
+                not isinstance(cfg['read_preference'], six.string_types)):
                 raise TypeError('Read_preference must be a string')
 
             if ('replicaSet' in cfg and
-                not isinstance(cfg['replicaSet'], str)):
+                not isinstance(cfg['replicaSet'], six.string_types)):
                 raise TypeError('replicaSet must be a string')
 
     def _parse_configs(self, config):
@@ -114,7 +116,7 @@ class MongoPool(object):
             Exception('No configuration provided'): no configuration provided.
         """
         for config_dict in config:
-            label = config_dict.keys()[0]
+            label = list(config_dict.keys())[0]
             cfg = config_dict[label]
             # Transform dbpath to something digestable by regexp.
             dbpath = cfg['dbpath']
